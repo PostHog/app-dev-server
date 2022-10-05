@@ -10,8 +10,7 @@
     "bin": {
         "web-dev-server": "bin/web-dev-server.mjs"
     },
-    "dependencies": {},
-    "devDependencies": {
+    "dependencies": {
         "@babel/standalone": "^7.19.3",
         "cors": "^2.8.5",
         "express": "^4.18.1",
