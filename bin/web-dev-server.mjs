@@ -40,7 +40,7 @@ export function startServer(opts = {}) {
                 }
             }
         } catch (e) {
-            console.error(`🤔 Could not read plugin.json.`)
+            console.error(`🤔 Could not read plugin.json: ${e.message}`)
             process.exit(1)
         }
         const webTsSource = fse.readFileSync(webTsPath, { encoding: 'utf-8' })
