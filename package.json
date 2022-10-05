@@ -5,10 +5,10 @@
     "author": "",
     "license": "MIT",
     "scripts": {
-        "start": "node bin/web-dev-sever.mjs"
+        "start": "node bin/web-dev-server.mjs"
     },
     "bin": {
-        "web-dev-sever": "bin/web-dev-sever.mjs"
+        "web-dev-server": "bin/web-dev-server.mjs"
     },
     "dependencies": {},
     "devDependencies": {
