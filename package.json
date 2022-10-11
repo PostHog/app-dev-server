@@ -1,6 +1,6 @@
 {
     "name": "@posthog/web-dev-server",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Helpful tools for developing PostHog apps.",
     "author": "",
     "license": "MIT",
