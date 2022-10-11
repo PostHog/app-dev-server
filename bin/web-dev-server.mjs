@@ -4,14 +4,14 @@ import cors from 'cors'
 import fse from 'fs-extra'
 import { transform } from '@babel/standalone'
 
-console.log(`Usage: web-dev-server [apiKey] [host] [pathTo/web.ts]`)
+console.log(`Usage: web-dev-server [apiKey] [host] [pathTo/site.ts]`)
 
 const defaultHost = 'localhost'
 const defaultPort = 3040
 
 const posthogKey = process.argv[2] || 'test'
 const posthogHost = process.argv[3] || 'http://localhost:8000'
-const webTsPath = process.argv[4] || 'web.ts'
+const siteTsPath = process.argv[4] || 'site.ts'
 
 export function startServer(opts = {}) {
     const host = opts.host || defaultHost
@@ -35,7 +35,7 @@ export function startServer(opts = {}) {
         try {
             pluginJson = JSON.parse(fse.readFileSync('plugin.json', { encoding: 'utf-8' }))
             for (const configEntry of pluginJson.config || []) {
-                if (configEntry.web) {
+                if (configEntry.site) {
                     config[configEntry.key] = configEntry.default
                 }
             }
@@ -43,13 +43,13 @@ export function startServer(opts = {}) {
             console.error(`🤔 Could not read plugin.json: ${e.message}`)
             process.exit(1)
         }
-        const webTsSource = fse.readFileSync(webTsPath, { encoding: 'utf-8' })
-        const { code } = transform(webTsSource, {
+        const siteTsSource = fse.readFileSync(siteTsPath, { encoding: 'utf-8' })
+        const { code } = transform(siteTsSource, {
             envName: 'production',
             code: true,
             babelrc: false,
             configFile: false,
-            filename: 'web.ts',
+            filename: 'site.ts',
             presets: [['typescript', { isTSX: false, allExtensions: true }], 'env'],
         })
 
@@ -61,12 +61,12 @@ export function startServer(opts = {}) {
                         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
                         posthog.init(${JSON.stringify(posthogKey)},{
                             api_host: ${JSON.stringify(posthogHost)},
-                            opt_in_web_app_injection: false, // opt out of all other apps 
+                            opt_in_site_apps: false, // opt out of all other apps 
                         })
                     </script>
                 </head>
                 <body>
-                    <h1>${pluginJson.name || 'PostHog App'}</h1>
+                    <h1>${pluginJson.name || 'PostHog Site App'}</h1>
                     <pre>plugin = ${JSON.stringify(pluginJson, null, 2)}</pre>
                     <pre>config = ${JSON.stringify(config, null, 2)}</pre>
                     <script>
