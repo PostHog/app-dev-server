@@ -4,6 +4,7 @@ import cors from 'cors'
 import fse from 'fs-extra'
 import { transform } from '@babel/standalone'
 import chokidar from 'chokidar'
+import { createHash } from 'crypto'
 
 const defaultHost = 'localhost'
 const defaultPort = 3040
@@ -36,7 +37,7 @@ export function startServer(opts = {}) {
         process.exit(1)
     })
     app.use(cors())
-        app.get('/_reload', (request, response) => {
+    app.get('/_reload', (request, response) => {
         response.writeHead(200, {
             'Content-Type': 'text/event-stream',
             Connection: 'keep-alive',
@@ -76,6 +77,9 @@ export function startServer(opts = {}) {
             siteJs = code
         } catch (e) {}
 
+        const localStorageKey =
+            'siteConfig-' + createHash('md5').update(JSON.stringify(pluginJson.config)).digest('hex')
+
         res.send(`
             <html>
                 <head>
@@ -96,6 +100,21 @@ export function startServer(opts = {}) {
                             })()
                         }
                     </script>
+                    <script>
+                        const localStorageKey = ${JSON.stringify(localStorageKey)}
+                        function setConfig(config) {
+                            localStorage.setItem(localStorageKey, JSON.stringify(config))
+                        }
+                        function getDefaultConfig() {
+                            return ${JSON.stringify(config)}
+                        }
+                        function getConfig() {
+                            return JSON.parse(localStorage.getItem(localStorageKey) || 'null') || getDefaultConfig()
+                        }
+                        function resetConfig() {
+                            localStorage.setItem(localStorageKey, null)
+                        }
+                    </script>
                 </head>
                 <body>
                     <h1>${pluginJson.name || 'PostHog Site App'}</h1>
@@ -104,12 +123,14 @@ export function startServer(opts = {}) {
                     ${
                         siteJs
                             ? `
-                        <pre>config = ${JSON.stringify(config, null, 2)}</pre>
+                        <textarea id='siteConfig' style='width:100%;height:30vh;'></textarea>
+                        <script>document.getElementById("siteConfig").value = JSON.stringify(getConfig(), null, 4)</script>
+                        <button type='button' onclick='setConfig(JSON.parse(document.getElementById("siteConfig").value));window.location.reload()'>Update</button>
+                        <button type='button' onclick='resetConfig();window.location.reload()'>Reset</button>
                         <script>
                             let exports = {};
                             ${siteJs}
-                            var config = ${JSON.stringify(config)};
-                            inject({ config: config, posthog: window.posthog });
+                            inject({ config: getConfig(), posthog: window.posthog });
                         </script>`
                             : 'This app does not come with a <code>site.ts</code> file.'
                     }
@@ -119,10 +140,14 @@ export function startServer(opts = {}) {
     })
     app.listen(port)
 
-    chokidar.watch('*').on('all', (event, filePath) => {
-        console.log('🔄 Reloading')
-        reloadLiveServer()
-    })
+    chokidar
+        .watch('*', {
+            ignoreInitial: true,
+        })
+        .on('all', (event, filePath) => {
+            console.log('🔄 Reloading. Changes in ' + filePath)
+            reloadLiveServer()
+        })
 
     return app
 }
