@@ -10,7 +10,7 @@
             "type": "string",
             "default": "🍍",
             "required": true,
-            "web": true
+            "site": true
         },
         {
             "key": "domains",
@@ -18,7 +18,7 @@
             "hint": "Comma separated list of domains to activate on. Leave blank to enable all. For example: \"localhost,app.posthog.com\"",
             "type": "string",
             "default": "",
-            "web": true
+            "site": true
         }
     ]
 }
