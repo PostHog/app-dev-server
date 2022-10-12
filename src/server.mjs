@@ -3,9 +3,16 @@ import express from 'express'
 import cors from 'cors'
 import fse from 'fs-extra'
 import { transform } from '@babel/standalone'
+import chokidar from 'chokidar'
 
 const defaultHost = 'localhost'
 const defaultPort = 3040
+
+let clients = new Set()
+
+function reloadLiveServer() {
+    clients.forEach((client) => client.write(`data: reload\n\n`))
+}
 
 export function startServer(opts = {}) {
     const { host, port, posthogHost, posthogKey, siteTsPath } = {
@@ -29,6 +36,16 @@ export function startServer(opts = {}) {
         process.exit(1)
     })
     app.use(cors())
+        app.get('/_reload', (request, response) => {
+        response.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            Connection: 'keep-alive',
+            'Cache-Control': 'no-cache',
+        })
+        clients.add(response)
+        request.on('close', () => clients.delete(response))
+    })
+
     app.get('/', async (req, res) => {
         let pluginJson = {}
         let config = {}
@@ -70,6 +87,15 @@ export function startServer(opts = {}) {
                             opt_in_site_apps: false, // opt out of all other apps 
                         })
                     </script>
+                    <script type="text/javascript">
+                        if ('EventSource' in window) {
+                            ;(function () {
+                                var eventSource = new EventSource('/_reload');
+                                eventSource.onmessage = () => window.location.reload()
+                                console.log('Live reload enabled.')
+                            })()
+                        }
+                    </script>
                 </head>
                 <body>
                     <h1>${pluginJson.name || 'PostHog Site App'}</h1>
@@ -92,5 +118,11 @@ export function startServer(opts = {}) {
         `)
     })
     app.listen(port)
+
+    chokidar.watch('*').on('all', (event, filePath) => {
+        console.log('🔄 Reloading')
+        reloadLiveServer()
+    })
+
     return app
 }
