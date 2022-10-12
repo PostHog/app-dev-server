@@ -2,11 +2,12 @@
 
 ## app-dev-sever
 
-Run `app-dev-sever` to serve a local `site.ts` file.
+Run `npx @posthog/app-dev-sever` inside any folder with a `plugin.json`, and we'll do our best to spin up a local
+app development environment.
 
-## Developing
+### Site Apps
 
-```bash
-pnpm install
-pnpm start
-```
+Currently only site apps are supported. See the [Pineapple Mode](https://github.com/PostHog/pineapple-mode-app)
+example app for a working example.
+
+![localhost](https://user-images.githubusercontent.com/53387/195459925-685a1243-3f2e-4bf8-82a6-1c6db6cf35dc.gif)
