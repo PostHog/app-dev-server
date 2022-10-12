@@ -123,6 +123,10 @@ export function startServer(opts = {}) {
                     ${
                         siteJs
                             ? `
+                        <p>
+                            Edit <code>site.ts</code> and save to reload. Look at the browser console for errors.
+                            Update the plugin's config below:
+                        </p>
                         <textarea id='siteConfig' style='width:100%;height:30vh;'></textarea>
                         <script>document.getElementById("siteConfig").value = JSON.stringify(getConfig(), null, 4)</script>
                         <button type='button' onclick='setConfig(JSON.parse(document.getElementById("siteConfig").value));window.location.reload()'>Update</button>
