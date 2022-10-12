@@ -4,18 +4,20 @@ import cors from 'cors'
 import fse from 'fs-extra'
 import { transform } from '@babel/standalone'
 
-console.log(`Usage: web-dev-server [apiKey] [host] [pathTo/site.ts]`)
+console.log(`Usage: app-dev-server [apiKey] [host] [pathTo/site.ts]`)
 
 const defaultHost = 'localhost'
 const defaultPort = 3040
 
-const posthogKey = process.argv[2] || 'test'
-const posthogHost = process.argv[3] || 'http://localhost:8000'
-const siteTsPath = process.argv[4] || 'site.ts'
-
 export function startServer(opts = {}) {
-    const host = opts.host || defaultHost
-    const port = opts.port || defaultPort
+    const { host, port, posthogHost, posthogKey, siteTsPath } = {
+        host: defaultHost,
+        port: defaultPort,
+        posthogKey: 'test',
+        posthogHost: 'http://localhost:8000',
+        siteTsPath: 'site.ts',
+        ...opts,
+    }
 
     console.log(`🍱 Starting server at http://${host}:${port}`)
 
