@@ -4,8 +4,6 @@ import cors from 'cors'
 import fse from 'fs-extra'
 import { transform } from '@babel/standalone'
 
-console.log(`Usage: app-dev-server [apiKey] [host] [pathTo/site.ts]`)
-
 const defaultHost = 'localhost'
 const defaultPort = 3040
 
@@ -43,17 +41,23 @@ export function startServer(opts = {}) {
             }
         } catch (e) {
             console.error(`🤔 Could not read plugin.json: ${e.message}`)
-            process.exit(1)
+            res.status(500).send(`Could not read plugin.json: ${e.message}`)
+            return
         }
-        const siteTsSource = fse.readFileSync(siteTsPath, { encoding: 'utf-8' })
-        const { code } = transform(siteTsSource, {
-            envName: 'production',
-            code: true,
-            babelrc: false,
-            configFile: false,
-            filename: 'site.ts',
-            presets: [['typescript', { isTSX: false, allExtensions: true }], 'env'],
-        })
+
+        let siteJs = ''
+        try {
+            const siteTsSource = fse.readFileSync(siteTsPath, { encoding: 'utf-8' })
+            const { code } = transform(siteTsSource, {
+                envName: 'production',
+                code: true,
+                babelrc: false,
+                configFile: false,
+                filename: 'site.ts',
+                presets: [['typescript', { isTSX: false, allExtensions: true }], 'env'],
+            })
+            siteJs = code
+        } catch (e) {}
 
         res.send(`
             <html>
@@ -69,14 +73,20 @@ export function startServer(opts = {}) {
                 </head>
                 <body>
                     <h1>${pluginJson.name || 'PostHog Site App'}</h1>
-                    <pre>plugin = ${JSON.stringify(pluginJson, null, 2)}</pre>
-                    <pre>config = ${JSON.stringify(config, null, 2)}</pre>
-                    <script>
-                        let exports = {};
-                        ${code}
-                        var config = ${JSON.stringify(config)};
-                        inject({ config: config, posthog: window.posthog });
-                    </script>
+                    <pre>plugin.json = ${JSON.stringify(pluginJson, null, 2)}</pre>
+                    <h2>site.ts</h2>
+                    ${
+                        siteJs
+                            ? `
+                        <pre>config = ${JSON.stringify(config, null, 2)}</pre>
+                        <script>
+                            let exports = {};
+                            ${siteJs}
+                            var config = ${JSON.stringify(config)};
+                            inject({ config: config, posthog: window.posthog });
+                        </script>`
+                            : 'This app does not come with a <code>site.ts</code> file.'
+                    }
                 </body>
             </html>
         `)
@@ -84,5 +94,3 @@ export function startServer(opts = {}) {
     app.listen(port)
     return app
 }
-
-startServer()
