@@ -1,6 +1,12 @@
-# PostHog `web.ts` local development server
+# PostHog `site.ts` local development server
 
-## web-dev-sever
+## app-dev-sever
 
-Run `web-dev-sever` to serve a local `web.ts` file.
+Run `app-dev-sever` to serve a local `site.ts` file.
 
+## Developing
+
+```bash
+pnpm install
+pnpm start
+```
