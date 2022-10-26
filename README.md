@@ -2,7 +2,7 @@
 
 ## app-dev-sever
 
-Run `npx @posthog/app-dev-sever` inside any folder with a `plugin.json`, and we'll do our best to spin up a local
+Run `npx @posthog/app-dev-server` inside any folder with a `plugin.json`, and we'll do our best to spin up a local
 app development environment.
 
 ### Site Apps
